@@ -45,7 +45,7 @@ export default function Register() {
 
       setSuccess(true);
       // redirect to dashboard or login
-      window.location.href = "/dashboard";
+      window.location.href = "/";
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {

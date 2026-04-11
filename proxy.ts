@@ -23,7 +23,7 @@ export function proxy(req: NextRequest) {
   if (isAuthRoute && token) {
     try {
       verifyToken(token);
-      return NextResponse.redirect(new URL("/dashboard", req.url));
+      return NextResponse.redirect(new URL("/", req.url));
     } catch {
       // token invalid, let them through
     }

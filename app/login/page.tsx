@@ -42,7 +42,7 @@ export default function Login() {
         return;
       }
 
-      window.location.href = "/dashboard";
+      window.location.href = "/";
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
