@@ -1,34 +1,10 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getSession } from "@/lib/session";
+import LogoutButton from "@/components/logout-button";
 
-type User = {
-  id: string;
-  name: string;
-  email: string;
-};
-
-export default function Navbar() {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success) setUser(data.data);
-      })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  }, []);
-
-  const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    setUser(null);
-    window.location.href = "/login";
-  };
+export default async function Navbar() {
+  const user = await getSession();
 
   return (
     <header className="border-b">
@@ -38,14 +14,12 @@ export default function Navbar() {
         </Link>
 
         <div className="flex items-center gap-2">
-          {loading ? null : user ? (
+          {user ? (
             <>
               <span className="text-sm text-muted-foreground">
                 Hi, {user.name.split(" ")[0]}
               </span>
-              <Button variant="ghost" onClick={handleLogout}>
-                Logout
-              </Button>
+              <LogoutButton />
             </>
           ) : (
             <>
