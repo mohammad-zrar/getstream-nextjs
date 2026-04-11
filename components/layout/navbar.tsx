@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getSession } from "@/lib/session";
-import LogoutButton from "@/components/logout-button";
+import LogoutButton from "@/components/layout/logout-button";
 
 export default async function Navbar() {
   const user = await getSession();

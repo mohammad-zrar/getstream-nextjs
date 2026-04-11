@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState } from "react";
 import {
   Card,
   CardContent,
@@ -12,43 +12,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { loginAction } from "@/actions/auth";
 
 export default function Login() {
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    setError(null);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-
-      const data = await res.json();
-
-      if (!data.success) {
-        setError(data.message);
-        return;
-      }
-
-      window.location.href = "/";
-    } catch {
-      setError("Something went wrong. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [state, action, pending] = useActionState(loginAction, undefined);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/40 px-4">
@@ -61,7 +28,7 @@ export default function Login() {
         </CardHeader>
 
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form action={action} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -69,10 +36,8 @@ export default function Login() {
                 name="email"
                 type="email"
                 placeholder="you@example.com"
-                value={form.email}
-                onChange={handleChange}
                 required
-                disabled={loading}
+                disabled={pending}
               />
             </div>
 
@@ -91,17 +56,17 @@ export default function Login() {
                 name="password"
                 type="password"
                 placeholder="••••••••"
-                value={form.password}
-                onChange={handleChange}
                 required
-                disabled={loading}
+                disabled={pending}
               />
             </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {state?.error && (
+              <p className="text-sm text-destructive">{state.error}</p>
+            )}
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Signing in…" : "Sign in"}
+            <Button type="submit" className="w-full" disabled={pending}>
+              {pending ? "Signing in…" : "Sign in"}
             </Button>
 
             <p className="text-center text-sm text-muted-foreground">
