@@ -2,16 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDataSource } from "@/lib/db";
 import { User } from "@/entities/User";
 import { verifyPassword, signToken } from "@/lib/auth";
+import { errorResponse, successResponse } from "@/lib/api-response";
 
 export async function POST(req: NextRequest) {
   try {
     const { email, password } = await req.json();
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: "All fields are required" },
-        { status: 400 },
-      );
+      return errorResponse("All fields are required", 400);
     }
 
     const ds = await getDataSource();
@@ -19,25 +17,20 @@ export async function POST(req: NextRequest) {
 
     const user = await userRepo.findOne({ where: { email } });
     if (!user) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 },
-      );
+      return errorResponse("Invalid credentials", 401);
     }
 
     const valid = await verifyPassword(password, user.password);
     if (!valid) {
-      return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 },
-      );
+      return errorResponse("Invalid credentials", 401);
     }
 
     const token = signToken({ id: user.id, email: user.email });
 
-    const response = NextResponse.json({
-      user: { id: user.id, name: user.name, email: user.email },
-    });
+    const response = successResponse(
+      { id: user.id, name: user.name, email: user.email },
+      "Logged in successfully",
+    );
 
     response.cookies.set("token", token, {
       httpOnly: true,
@@ -50,9 +43,6 @@ export async function POST(req: NextRequest) {
     return response;
   } catch (err) {
     console.error(err);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
+    return errorResponse("Internal server error", 500);
   }
 }
