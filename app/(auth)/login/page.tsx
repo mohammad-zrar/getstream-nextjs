@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { loginAction } from "@/actions/auth";
 
-export default function Login() {
+export default function LoginPage() {
   const [state, action, pending] = useActionState(loginAction, undefined);
 
   return (

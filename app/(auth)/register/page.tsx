@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import { registerAction } from "@/actions/auth";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -10,11 +11,10 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { registerAction } from "@/actions/auth";
+import { useActionState } from "react";
 
-export default function Register() {
+export default function RegisterPage() {
   const [state, action, pending] = useActionState(registerAction, undefined);
 
   return (
