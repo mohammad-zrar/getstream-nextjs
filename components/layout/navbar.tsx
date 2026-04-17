@@ -8,7 +8,7 @@ export default async function Navbar() {
 
   return (
     <header className="border-b">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <nav className="container mx-auto flex h-16 items-center justify-between px-4">
         <Link href="/" className="text-xl font-bold">
           Get Stream
         </Link>
@@ -32,7 +32,7 @@ export default async function Navbar() {
             </>
           )}
         </div>
-      </div>
+      </nav>
     </header>
   );
 }

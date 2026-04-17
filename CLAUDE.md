@@ -46,9 +46,49 @@ TypeORM with PostgreSQL. `lib/db.ts` exposes `getDataSource()` — lazy-initiali
 | Path | Notes |
 |---|---|
 | `app/(auth)/login` · `app/(auth)/register` | Client components; use `useActionState` + server actions |
-| `app/(protected)/` | Empty — add protected pages here |
+| `app/(protected)/rooms/[roomId]` | Room view page |
+| `app/(protected)/rooms/[roomId]/join` | Join confirmation page |
 | `app/layout.tsx` | Root layout; renders `<Navbar>` (server component, calls `getSession()`) |
 | `proxy.ts` | Route guard (replaces `middleware.ts`) |
+
+### Page + component pattern
+
+Pages are **always server components** — no `"use client"` in `page.tsx`. Pass server actions as props to client components.
+
+```tsx
+// app/page.tsx — server component
+export default function Page() {
+  return <SomeClientComponent action={someServerAction} />;
+}
+
+// app/_components/SomeClientComponent.tsx — client component
+"use client";
+export function SomeClientComponent({ action }) {
+  const [state, formAction, pending] = useActionState(action, undefined);
+  ...
+}
+```
+
+Page HTML structure: every `page.tsx` wraps content in `<main>` with an `<h1>`. Heading hierarchy must not skip levels.
+
+### Component naming & location
+
+| Location | Convention | Used for |
+|---|---|---|
+| `app/_components/` | PascalCase | Homepage-specific components |
+| `app/(route)/_components/` | PascalCase | Route-specific components |
+| `components/layout/` | kebab-case | App-wide layout (Navbar, etc.) |
+| `components/ui/` | kebab-case | shadcn primitives — do not edit manually |
+
+### Next.js 16 params
+
+Dynamic route `params` is a `Promise` — always `await` it:
+
+```tsx
+export default async function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+}
+```
 
 ### UI components
 

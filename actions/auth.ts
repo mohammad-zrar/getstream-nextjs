@@ -1,9 +1,8 @@
 "use server";
 
-import { getDataSource } from "@/lib/db";
 import { User } from "@/entities/User";
-import { hashPassword, verifyPassword, signToken } from "@/lib/auth";
-import { verifyToken } from "@/lib/auth";
+import { hashPassword, signToken, verifyPassword } from "@/lib/auth";
+import { getDataSource } from "@/lib/db";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 

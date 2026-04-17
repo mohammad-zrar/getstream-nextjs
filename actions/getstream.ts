@@ -1,4 +1,7 @@
+"use server";
+
 import { StreamClient, UserRequest } from "@stream-io/node-sdk";
+import { redirect } from "next/navigation";
 
 const apiKey = process.env.GETSTREAM_API_KEY;
 const secret = process.env.GETSTREAM_API_SECRET;
@@ -19,7 +22,6 @@ export async function generateUserToken() {
       color: "red",
     },
     name: "John",
-    image: "link/to/profile/image",
   };
   await client.upsertUsers([newUser]);
 
@@ -34,4 +36,11 @@ export async function generateUserToken() {
   console.log("User token generated successfully");
   console.log(userToken);
   return userToken;
+}
+
+export async function joinRoomAction(_: unknown, formData: FormData) {
+  const roomId = formData.get("roomId") as string;
+  console.log("Room ID:", roomId);
+
+  redirect(`/rooms/${roomId}`);
 }
