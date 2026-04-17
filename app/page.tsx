@@ -3,9 +3,16 @@ import JoinOrCreateRoom from "./_components/JoinOrCreateRoom";
 
 export default function HomePage() {
   return (
-    <main>
-      <h1 className="text-2xl font-bold">Welcome to the GetStream ReactJS Demo!</h1>
-      <JoinOrCreateRoom joinAction={joinRoomAction} />
+    <main className="h-full p-16 grid grid-rows-4">
+      <div className="">
+        <h1 className="text-3xl font-bold text-center">
+          Welcome to the GetStream ReactJS Demo!
+        </h1>
+      </div>
+
+      <div className="row-span-3">
+        <JoinOrCreateRoom joinAction={joinRoomAction} />
+      </div>
     </main>
   );
 }

@@ -9,16 +9,25 @@ interface JoinOrCreateRoomProps {
   joinAction: typeof joinRoomAction;
 }
 
-export default function JoinOrCreateRoom({ joinAction }: JoinOrCreateRoomProps) {
+export default function JoinOrCreateRoom({
+  joinAction,
+}: JoinOrCreateRoomProps) {
   const [, action, pending] = useActionState(joinAction, undefined);
 
   return (
-    <div>
-      <form action={action} className="space-y-4">
-        <Input id="roomId" name="roomId" placeholder="Enter Room ID" />
-        <Button disabled={pending}>Join Room</Button>
-      </form>
+    <section className="flex justify-center gap-4 h-full">
       <Button>Create a Room</Button>
-    </div>
+      <form action={action} className="flex">
+        <Input
+          id="roomId"
+          name="roomId"
+          placeholder="Enter Room ID"
+          className="rounded-br-none rounded-tr-none"
+        />
+        <Button disabled={pending} className="rounded-tl-none rounded-bl-none">
+          Join Room
+        </Button>
+      </form>
+    </section>
   );
 }

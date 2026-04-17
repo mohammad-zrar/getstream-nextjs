@@ -38,7 +38,7 @@ export default function RootLayout({
         inter.variable,
       )}
     >
-      <body className="min-h-full flex flex-col" suppressHydrationWarning>
+      <body className="h-full flex flex-col" suppressHydrationWarning>
         <Navbar />
         <main className="flex-1">{children}</main>
       </body>
