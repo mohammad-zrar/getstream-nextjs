@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   CallingState,
   LivestreamLayout,
@@ -10,6 +10,49 @@ import {
 import { Camera, CameraOff, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+function useDevicePreview() {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [cameraEnabled, setCameraEnabled] = useState(true);
+  const [micEnabled, setMicEnabled] = useState(true);
+  const [cameraAvailable, setCameraAvailable] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    navigator.mediaDevices
+      .getUserMedia({ video: true, audio: false })
+      .then((stream) => {
+        if (!active) { stream.getTracks().forEach((t) => t.stop()); return; }
+        streamRef.current = stream;
+        setCameraAvailable(true);
+        if (videoRef.current) videoRef.current.srcObject = stream;
+      })
+      .catch(() => setCameraAvailable(false));
+    return () => {
+      active = false;
+      streamRef.current?.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    };
+  }, []);
+
+  const toggleCamera = useCallback(() => {
+    setCameraEnabled((prev) => {
+      const next = !prev;
+      streamRef.current?.getVideoTracks().forEach((t) => { t.enabled = next; });
+      return next;
+    });
+  }, []);
+
+  const toggleMic = useCallback(() => setMicEnabled((prev) => !prev), []);
+
+  const stopPreview = useCallback(() => {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+  }, []);
+
+  return { videoRef, cameraEnabled, micEnabled, cameraAvailable, toggleCamera, toggleMic, stopPreview };
+}
+
 export default function HostView() {
   const call = useCall();
   const { useCallCallingState, useIsCallLive, useCameraState, useMicrophoneState } = useCallStateHooks();
@@ -18,18 +61,21 @@ export default function HostView() {
   const { isMute: isCameraMuted } = useCameraState();
   const { isMute: isMicMuted } = useMicrophoneState();
   const [joining, setJoining] = useState(false);
+  const { videoRef, cameraEnabled, micEnabled, cameraAvailable, toggleCamera, toggleMic, stopPreview } =
+    useDevicePreview();
 
   const handleJoin = useCallback(async () => {
     if (!call) return;
     setJoining(true);
+    stopPreview();
     try {
       await call.join();
-      await call.camera.enable();
-      await call.microphone.enable();
+      if (cameraEnabled) await call.camera.enable();
+      if (micEnabled) await call.microphone.enable();
     } finally {
       setJoining(false);
     }
-  }, [call]);
+  }, [call, cameraEnabled, micEnabled, stopPreview]);
 
   const handleGoLive = useCallback(async () => {
     await call?.goLive();
@@ -48,14 +94,49 @@ export default function HostView() {
     callingState === CallingState.UNKNOWN
   ) {
     return (
-      <div className="h-full flex flex-col items-center justify-center gap-4">
-        <h2 className="text-xl font-semibold">Ready to host?</h2>
-        <p className="text-sm text-muted-foreground">
-          Enter backstage to set up your camera and mic before going live.
-        </p>
-        <Button onClick={handleJoin} disabled={joining}>
-          {joining ? "Entering..." : "Enter Backstage"}
-        </Button>
+      <div className="h-full flex flex-col items-center justify-center gap-6 p-6">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold">Ready to host?</h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            Preview your camera and mic, then enter backstage.
+          </p>
+        </div>
+        <div className="relative w-full max-w-md aspect-video bg-muted rounded-lg overflow-hidden">
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            className="w-full h-full object-cover scale-x-[-1]"
+            style={{ display: cameraAvailable && cameraEnabled ? "block" : "none" }}
+          />
+          {(!cameraAvailable || !cameraEnabled) && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <CameraOff className="size-10 text-muted-foreground" />
+            </div>
+          )}
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant={cameraEnabled ? "outline" : "destructive"}
+            size="icon"
+            onClick={toggleCamera}
+            title={cameraEnabled ? "Turn camera off" : "Turn camera on"}
+          >
+            {cameraEnabled ? <Camera className="size-4" /> : <CameraOff className="size-4" />}
+          </Button>
+          <Button
+            variant={micEnabled ? "outline" : "destructive"}
+            size="icon"
+            onClick={toggleMic}
+            title={micEnabled ? "Mute mic" : "Unmute mic"}
+          >
+            {micEnabled ? <Mic className="size-4" /> : <MicOff className="size-4" />}
+          </Button>
+          <Button onClick={handleJoin} disabled={joining}>
+            {joining ? "Entering..." : "Enter Backstage"}
+          </Button>
+        </div>
       </div>
     );
   }
