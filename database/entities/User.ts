@@ -1,10 +1,12 @@
 import {
-  Entity,
-  PrimaryGeneratedColumn,
   Column,
   CreateDateColumn,
+  Entity,
+  OneToMany,
+  PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from "typeorm";
+import type { Room } from "./Room";
 
 @Entity("users")
 export class User {
@@ -18,11 +20,14 @@ export class User {
   name: string;
 
   @Column()
-  password: string; // stored as bcrypt hash
+  password: string;
 
   @CreateDateColumn()
   createdAt: Date;
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  @OneToMany(() => require("./Room").Room, (room: Room) => room.host)
+  rooms: Room[];
 }

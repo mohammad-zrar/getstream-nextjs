@@ -1,8 +1,8 @@
 "use server";
 
-import { User } from "@/entities/User";
+import { User } from "@/database/entities/User";
 import { hashPassword, signToken, verifyPassword } from "@/lib/auth";
-import { getDataSource } from "@/lib/db";
+import { getDataSource } from "@/database/db";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 

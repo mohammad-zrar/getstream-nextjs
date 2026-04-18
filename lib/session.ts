@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { verifyToken } from "@/lib/auth";
-import { getDataSource } from "@/lib/db";
-import { User } from "@/entities/User";
+import { getDataSource } from "@/database/db";
+import { User } from "@/database/entities/User";
 
 export async function getSession(): Promise<User | null> {
   try {

@@ -2,6 +2,9 @@
 
 import { StreamClient, UserRequest } from "@stream-io/node-sdk";
 import { redirect } from "next/navigation";
+import { getSession } from "@/lib/session";
+import { getDataSource } from "@/database/db";
+import { Room } from "@/database/entities/Room";
 
 const apiKey = process.env.GETSTREAM_API_KEY;
 const secret = process.env.GETSTREAM_API_SECRET;
@@ -45,7 +48,35 @@ export async function joinRoomAction(_: unknown, formData: FormData) {
   redirect(`/rooms/${roomId}`);
 }
 
+export async function getStreamToken(userId: string, userName: string): Promise<string> {
+  await client.upsertUsers([{ id: userId, name: userName, role: "user" }]);
+  return client.generateUserToken({ user_id: userId, validity_in_seconds: 60 * 60 });
+}
+
 export async function createRoomAction() {
+  const user = await getSession();
+  if (!user) redirect("/login");
+
+  await client.upsertUsers([{ id: user.id, name: user.name, role: "user" }]);
+
   const roomId = crypto.randomUUID();
+  const callType = "livestream";
+  const call = client.video.call(callType, roomId);
+  const createdCall = await call.getOrCreate({
+    data: {
+      created_by_id: user.id,
+      members: [{ user_id: user.id, role: "admin" }],
+    },
+  });
+
+  const ds = await getDataSource();
+  const room = ds.getRepository(Room).create({
+    callId: roomId,
+    callCid: createdCall.call.cid,
+    callType,
+    userId: user.id,
+  });
+  await ds.getRepository(Room).save(room);
+
   return { roomId };
 }
