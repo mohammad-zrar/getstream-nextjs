@@ -44,3 +44,8 @@ export async function joinRoomAction(_: unknown, formData: FormData) {
 
   redirect(`/rooms/${roomId}`);
 }
+
+export async function createRoomAction() {
+  const roomId = crypto.randomUUID();
+  return { roomId };
+}

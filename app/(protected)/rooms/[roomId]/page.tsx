@@ -6,7 +6,7 @@ export default async function RoomPage({
   const { roomId } = await params;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/40 px-4">
+    <div className="h-full flex items-center justify-center bg-muted/40 px-4">
       <h1 className="text-2xl font-bold">Room ID: {roomId}</h1>
     </div>
   );

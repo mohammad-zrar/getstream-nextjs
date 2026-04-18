@@ -69,7 +69,7 @@ export function SomeClientComponent({ action }) {
 }
 ```
 
-Page HTML structure: every `page.tsx` wraps content in `<main>` with an `<h1>`. Heading hierarchy must not skip levels.
+Page HTML structure: `<main>` lives once in `app/layout.tsx` — do not add `<main>` in `page.tsx`. Pages use `<div>` as the top-level wrapper. Every page must have an `<h1>`. Heading hierarchy must not skip levels.
 
 ### Component naming & location
 
