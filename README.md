@@ -1,36 +1,144 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# GetStream Live Streaming Demo
 
-## Getting Started
+A live streaming web app built with Next.js 16, React 19, and [GetStream](https://getstream.io). Users register, create or join stream rooms, and participate as host (with camera/mic controls) or audience.
 
-First, run the development server:
+---
+
+## Tech Stack
+
+| Tool | Purpose |
+|---|---|
+| [Next.js 16](https://nextjs.org) | App Router, server components, server actions |
+| [React 19](https://react.dev) | UI |
+| [TypeScript](https://www.typescriptlang.org) | Type safety |
+| [TypeORM](https://typeorm.io) | ORM — room/user data in PostgreSQL |
+| [PostgreSQL](https://www.postgresql.org) | Database |
+| [GetStream Video React SDK](https://getstream.io/video/sdk/react/) | Live video/audio streaming |
+| [shadcn/ui](https://ui.shadcn.com) | UI components (Radix + Tailwind v4) |
+| [pnpm](https://pnpm.io) | Package manager |
+
+---
+
+## Prerequisites
+
+Install these before starting:
+
+- **Node.js** v20+ — [nodejs.org](https://nodejs.org)
+- **pnpm** — `npm install -g pnpm`
+- **PostgreSQL** — [postgresql.org/download](https://www.postgresql.org/download/) (or use Docker: `docker run -e POSTGRES_PASSWORD=password -p 5432:5432 postgres`)
+
+---
+
+## GetStream API Keys
+
+This project uses [GetStream](https://getstream.io) for live video streaming.
+
+1. Sign up at **[getstream.io](https://getstream.io)**
+2. Create a new app in the [GetStream Dashboard](https://dashboard.getstream.io)
+3. Go to your app's **Overview** page
+4. Copy your **API Key** and **API Secret**
+
+You'll need both values for the environment variables below.
+
+---
+
+## Installation
+
+### 1. Clone the repo
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/mohammad-zrar/getstream-reactjs-demo.git
+cd getstream-reactjs-demo
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### 3. Configure environment variables
 
-## Learn More
+Create a `.env.local` file in the project root:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+cp .env.example .env.local
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Or create it manually:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```env
+# GetStream — get these from https://dashboard.getstream.io
+GETSTREAM_API_KEY=your_api_key_here
+GETSTREAM_API_SECRET=your_api_secret_here
 
-## Deploy on Vercel
+# PostgreSQL
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_USER=postgres
+DATABASE_PASSWORD=your_db_password
+DATABASE_NAME=getstream_demo
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+# JWT
+JWT_SECRET=your_random_secret_string
+JWT_EXPIRES_IN=7d
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### 4. Create the database
+
+```bash
+psql -U postgres -c "CREATE DATABASE getstream_demo;"
+```
+
+The app uses `synchronize: true` — TypeORM auto-creates tables on first run. No migrations needed for development.
+
+### 5. Run the dev server
+
+```bash
+pnpm dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+---
+
+## Commands
+
+```bash
+pnpm dev      # start dev server (localhost:3000, hot reload)
+pnpm build    # production build
+pnpm start    # run production build
+pnpm lint     # run ESLint
+```
+
+---
+
+## How It Works
+
+1. **Register / Login** — custom JWT auth, token stored in an httpOnly cookie
+2. **Home page** — create a new room or join an existing one by room ID
+3. **Host view** — camera and mic controls, live stream to audience
+4. **Audience view** — watch the live stream, leave at any time
+
+---
+
+## Project Structure
+
+```
+app/
+  (auth)/          # login + register pages
+  (protected)/
+    rooms/[roomId] # room page — host or audience view
+  _components/     # homepage components
+actions/           # server actions (auth, getstream)
+components/        # layout + shadcn UI primitives
+lib/               # auth helpers, db, session, api response utils
+proxy.ts           # route guard (replaces middleware.ts in Next.js 16)
+```
+
+---
+
+## Notes
+
+- **Production**: disable `synchronize: true` in `lib/db.ts` and use TypeORM migrations
+- **Next.js 16**: uses `proxy.ts` instead of `middleware.ts` — do not rename it
