@@ -23,6 +23,8 @@ export default function HostView() {
     setJoining(true);
     try {
       await call.join();
+      await call.camera.enable();
+      await call.microphone.enable();
     } finally {
       setJoining(false);
     }
