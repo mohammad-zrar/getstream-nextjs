@@ -3,6 +3,7 @@
 import { User } from "@/database/entities/User";
 import { hashPassword, signToken, verifyPassword } from "@/lib/auth";
 import { getDataSource } from "@/database/db";
+import { upsertStreamUser } from "@/actions/getstream";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -33,6 +34,8 @@ export async function registerAction(_: unknown, formData: FormData) {
   });
   await userRepo.save(user);
 
+  await upsertStreamUser(user.id, user.name);
+
   const token = signToken({ id: user.id, email: user.email });
   await setAuthCookie(token);
 
@@ -51,6 +54,8 @@ export async function loginAction(_: unknown, formData: FormData) {
 
   const valid = await verifyPassword(password, user.password);
   if (!valid) return { error: "Invalid credentials" };
+
+  await upsertStreamUser(user.id, user.name);
 
   const token = signToken({ id: user.id, email: user.email });
   await setAuthCookie(token);

@@ -20,7 +20,7 @@ export default async function RoomPage({
   if (!room) notFound();
 
   const isHost = room.userId === user.id;
-  const token = await getStreamToken(user.id, user.name);
+  const token = await getStreamToken(user.id);
 
   return (
     <div className="h-full">

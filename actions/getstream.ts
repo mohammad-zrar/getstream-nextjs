@@ -1,10 +1,11 @@
 "use server";
 
-import { StreamClient, UserRequest } from "@stream-io/node-sdk";
-import { redirect } from "next/navigation";
-import { getSession } from "@/lib/session";
 import { getDataSource } from "@/database/db";
 import { Room } from "@/database/entities/Room";
+import { getSession } from "@/lib/session";
+import { getRandomColor } from "@/lib/utils";
+import { StreamClient, UserRequest } from "@stream-io/node-sdk";
+import { redirect } from "next/navigation";
 
 const apiKey = process.env.GETSTREAM_API_KEY;
 const secret = process.env.GETSTREAM_API_SECRET;
@@ -14,31 +15,19 @@ if (!apiKey || !secret) {
     "GETSTREAM_API_KEY and GETSTREAM_API_SECRET must be set in the environment variables.",
   );
 }
-const client = new StreamClient(apiKey, secret);
+const client = new StreamClient(apiKey, secret, { timeout: 10000 });
 
-export async function generateUserToken() {
-  const userId = "john";
-  const newUser: UserRequest = {
-    id: userId,
+export async function upsertStreamUser(id: string, name: string) {
+  const user: UserRequest = {
+    id,
+    name,
     role: "user",
     custom: {
-      color: "red",
+      color: getRandomColor(),
     },
-    name: "John",
   };
-  await client.upsertUsers([newUser]);
 
-  // validity is optional (by default the token is valid for an hour)
-  const vailidity = 60 * 60;
-
-  const userToken = client.generateUserToken({
-    user_id: userId,
-    validity_in_seconds: vailidity,
-  });
-
-  console.log("User token generated successfully");
-  console.log(userToken);
-  return userToken;
+  await client.upsertUsers([user]);
 }
 
 export async function joinRoomAction(_: unknown, formData: FormData) {
@@ -48,16 +37,19 @@ export async function joinRoomAction(_: unknown, formData: FormData) {
   redirect(`/rooms/${roomId}`);
 }
 
-export async function getStreamToken(userId: string, userName: string): Promise<string> {
-  await client.upsertUsers([{ id: userId, name: userName, role: "user" }]);
-  return client.generateUserToken({ user_id: userId, validity_in_seconds: 60 * 60 });
+export async function getStreamToken(userId: string): Promise<string> {
+  // validity is optional (by default the token is valid for an hour)
+  const vailidity = 60 * 60;
+
+  return client.generateUserToken({
+    user_id: userId,
+    validity_in_seconds: vailidity,
+  });
 }
 
 export async function createRoomAction() {
   const user = await getSession();
   if (!user) redirect("/login");
-
-  await client.upsertUsers([{ id: user.id, name: user.name, role: "user" }]);
 
   const roomId = crypto.randomUUID();
   const callType = "livestream";
