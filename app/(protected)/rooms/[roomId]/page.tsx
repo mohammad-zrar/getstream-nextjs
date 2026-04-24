@@ -1,8 +1,8 @@
-import { notFound, redirect } from "next/navigation";
-import { getSession } from "@/lib/session";
+import { getStreamToken } from "@/actions/getstream";
 import { getDataSource } from "@/database/db";
 import { Room } from "@/database/entities/Room";
-import { getStreamToken } from "@/actions/getstream";
+import { getSession } from "@/lib/session";
+import { notFound, redirect } from "next/navigation";
 import RoomView from "./_components/RoomView";
 
 export default async function RoomPage({
@@ -16,7 +16,9 @@ export default async function RoomPage({
   if (!user) redirect("/login");
 
   const ds = await getDataSource();
-  const room = await ds.getRepository(Room).findOne({ where: { callId: roomId } });
+  const room = await ds
+    .getRepository(Room)
+    .findOne({ where: { callId: roomId } });
   if (!room) notFound();
 
   const isHost = room.userId === user.id;
@@ -24,7 +26,10 @@ export default async function RoomPage({
 
   return (
     <div className="h-full">
-      <h1 className="sr-only">{isHost ? "Hosting" : "Watching"} room {roomId}</h1>
+      <h1 className="sr-only">
+        {isHost ? "Hosting" : "Watching"} room {roomId}
+      </h1>
+
       <RoomView
         callId={roomId}
         callType={room.callType}
