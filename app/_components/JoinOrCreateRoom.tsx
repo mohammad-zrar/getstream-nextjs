@@ -14,6 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { Spinner } from "@/components/ui/spinner";
 import { useRouter } from "next/navigation";
 import { useActionState, useState } from "react";
 
@@ -56,7 +57,9 @@ export default function JoinOrCreateRoom({
           </DialogHeader>
 
           {createPending ? (
-            <p>Creating...</p>
+            <div className="flex justify-center h-32 items-center">
+              <Spinner className="size-8" />
+            </div>
           ) : (
             <div className="flex flex-col gap-3">
               <DialogDescription className="sr-only">
