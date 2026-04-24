@@ -1,9 +1,8 @@
 "use client";
 
-import { useActionState, useState } from "react";
-import { useRouter } from "next/navigation";
+import type { createRoomAction, joinRoomAction } from "@/actions/getstream";
+import CopyButton from "@/components/shared/CopyButton";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Dialog,
   DialogClose,
@@ -14,28 +13,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { CopyIcon, CheckIcon } from "lucide-react";
-import type { createRoomAction, joinRoomAction } from "@/actions/getstream";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+import { useActionState, useState } from "react";
 
 interface JoinOrCreateRoomProps {
   joinAction: typeof joinRoomAction;
   createAction: typeof createRoomAction;
-}
-
-function CopyButton({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-
-  async function handleCopy() {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  return (
-    <Button type="button" variant="ghost" size="icon-sm" onClick={handleCopy}>
-      {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
-    </Button>
-  );
 }
 
 export default function JoinOrCreateRoom({
@@ -43,7 +27,10 @@ export default function JoinOrCreateRoom({
   createAction,
 }: JoinOrCreateRoomProps) {
   const [, joinFormAction, joinPending] = useActionState(joinAction, undefined);
-  const [createState, createFormAction, createPending] = useActionState(createAction, undefined);
+  const [createState, createFormAction, createPending] = useActionState(
+    createAction,
+    undefined,
+  );
   const [joinRoomId, setJoinRoomId] = useState("");
   const [open, setOpen] = useState(false);
   const router = useRouter();
@@ -57,21 +44,31 @@ export default function JoinOrCreateRoom({
     <section className="flex justify-center gap-4 h-full">
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button>Create a Room</Button>
+          <form action={createFormAction}>
+            <Button type="submit" disabled={createPending}>
+              {createPending ? "Creating..." : "Create a Room"}
+            </Button>
+          </form>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create a Room</DialogTitle>
           </DialogHeader>
 
-          {createdRoomId ? (
+          {createPending ? (
+            <p>Creating...</p>
+          ) : (
             <div className="flex flex-col gap-3">
-              <DialogDescription className="sr-only">Room created. Copy the ID or URL below.</DialogDescription>
+              <DialogDescription className="sr-only">
+                Room created. Copy the ID or URL below.
+              </DialogDescription>
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Room ID</p>
                 <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2">
-                  <code className="flex-1 text-sm break-all">{createdRoomId}</code>
-                  <CopyButton text={createdRoomId} />
+                  <code className="flex-1 text-sm break-all">
+                    {createdRoomId}
+                  </code>
+                  <CopyButton text={createdRoomId!} />
                 </div>
               </div>
               <div>
@@ -82,30 +79,17 @@ export default function JoinOrCreateRoom({
                 </div>
               </div>
             </div>
-          ) : (
-            <DialogDescription>
-              A new room will be created with a unique ID. Share the ID with others to invite them.
-            </DialogDescription>
           )}
-
-          <DialogFooter>
-            {createdRoomId ? (
-              <>
-                <DialogClose asChild>
-                  <Button variant="outline">Close</Button>
-                </DialogClose>
-                <Button onClick={() => router.push(`/rooms/${createdRoomId}`)}>
-                  Join Room
-                </Button>
-              </>
-            ) : (
-              <form action={createFormAction}>
-                <Button type="submit" disabled={createPending}>
-                  {createPending ? "Creating..." : "Create"}
-                </Button>
-              </form>
-            )}
-          </DialogFooter>
+          {!createPending && (
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Close</Button>
+              </DialogClose>
+              <Button onClick={() => router.push(`/rooms/${createdRoomId}`)}>
+                Join Room
+              </Button>
+            </DialogFooter>
+          )}
         </DialogContent>
       </Dialog>
 
